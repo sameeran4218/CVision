@@ -6,6 +6,8 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)]()
 [![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)]()
 [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)]()
+[![Pinecone](https://img.shields.io/badge/Pinecone-000000?style=for-the-badge&logo=pinecone&logoColor=white)]()
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)]()
 
 *An intelligent resume analysis platform powered by AI that bridges the gap between candidates and opportunities*
 
@@ -256,7 +258,5 @@ graph LR
 ### 🌟 **Built with passion for connecting talent with opportunity**
 
 ---
-
-*Made with ❤️ using modern AI technologies*
 
 </div>
