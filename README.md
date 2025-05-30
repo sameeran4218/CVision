@@ -20,7 +20,7 @@
 ## ✨ What is CVision?
 
 CVision transforms the traditional resume screening process using artificial intelligence. By leveraging LangChain, Groq APIs, and Pinecone vector search, it creates intelligent connections between resumes and job requirements, helping both job seekers and recruiters make better decisions.
-You can view a demo ![here](https://youtu.be/g1Y-4byQIcc)
+You can view a demo [here](https://youtu.be/g1Y-4byQIcc)
 
 ---
 
