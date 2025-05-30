@@ -1,84 +1,82 @@
-# 🔍 CVision - AI Powered Resume Analyzer Platform
+# CVision - AI Resume Analyzer Platform
 
 [![YouTube Demo](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/g1Y-4byQIcc)
 
-CVision revolutionizes hiring with LLM powered cv analysis via Langchain which allows recruiters to get smart insights into candidate's resume and and cut down time.
+CVision is a resume analysis platform that uses AI to help match candidates with job requirements. Built with LangChain, Groq APIs, and Pinecone vector search, it provides resume analysis and job matching capabilities for both job seekers and recruiters.
 
 ![CVision Dashboard](https://github.com/user-attachments/assets/765263fc-7514-4380-8534-5f3688bd5735)
 
 ---
 
-## 🌟 Key Features
-
-### For Job Seekers
-- **AI Resume Report Card** - Scores your resume on ATS compatibility
-- **Skill Gap Analysis** - Identifies missing skills for target roles
-- **Personalized Suggestions** - Actionable improvement tips
+## Features
 
 ### For Recruiters
-- **Smart Candidate Ranking** - AI-driven fit scoring (1-100)
-- **Comparative Analysis** - Personalized candidate evaluation based on strengths and weakness for each company and job.
-- **Cloud-Based CV Parsing** - Instant insights without downloads
+- Upload and parse resumes automatically
+- Rank candidates based on job description matching
+- Get AI-generated fit scores and candidate analysis
+- Compare candidate profiles
+- Download resumes directly from the platform
+
+### For Job Seekers
+- Upload resume for AI analysis
+- Receive feedback on ATS compatibility
+- Get skill gap analysis based on job market data
+- Receive improvement suggestions for your resume
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Core Components
 | Component | Technology |
 |-----------|------------|
-| Frontend |Flask|
-| Resume Parser | LangChain + LLMs (Groq) |
-| Vector Database | Pinecone |
+| Frontend | Flask |
+| AI Processing | LangChain + Groq LLM |
+| Vector Search | Pinecone |
 | File Storage | Cloudinary |
 | Database | MongoDB |
 
-### AI Modules
-- **Resume Analyzer** (LangChain + LLM (Groq))
-- **Job-CV Matcher** (Pinecone similarity search)
-- **Suggestion Generator** (LangChain + LLM (Groq))
-
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
-    A[Candidate Uploads CV] --> B[Cloudinary Storage]
+    A[Resume Upload] --> B[Cloudinary Storage]
     B --> C[LangChain Processing]
     C --> D[Generate Embeddings]
-    D --> E[Pinecone Indexing]
-    F[Recruiter Posts Job] --> G[Job Description Embedding]
-    E --> H[Similarity Matching]
+    D --> E[Pinecone Vector Storage]
+    F[Job Description] --> G[Job Embedding]
+    E --> H[Similarity Search]
     G --> H
     H --> I[LLM Analysis]
-    I --> J[Fit Score + Insights]
+    I --> J[Score & Recommendations]
     J --> K[MongoDB Storage]
-    K --> L[Recruiter Dashboard]
+    K --> L[Dashboard Display]
 ```
+
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.9+
 - Groq API key
-- Pinecone Index
-- Mongo DB collection
-- Cloudinary Api key
+- Pinecone account and index
+- MongoDB database
+- Cloudinary account
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/sameeran4218/CVision.git
-   cd cvision
+   cd CVision
    ```
 
-2. **Create and activate virtual environment**
+2. **Create virtual environment**
    ```bash
    python -m venv venv
-   source venv/bin/activate   # On Windows use `venv\Scripts\activate`
+   source venv/bin/activate   # Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies**
@@ -86,23 +84,41 @@ graph TD
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables**
-   Set up your environment variables like pinecone indexes, mongodb collections, groq api key , cloudinary api key etc. in a .env folder
+4. **Configure environment variables**
+   Create a `.env` file with:
+   ```
+   GROQ_API_KEY=your_groq_api_key
+   PINECONE_API_KEY=your_pinecone_key
+   PINECONE_INDEX_NAME=your_index_name
+   MONGODB_URI=your_mongodb_connection_string
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
+   ```
 
 ### Running the Application
 ```bash
-python run app.py
+python app.py
 ```
 
 ---
-## 🧠 How It Works
 
-### 1. Candidate Flow
-- Upload PDF/Word resume
-- LLM analyzes resume againts similar job descriptions
-- Summarizes all the suggestions for all similar job roles to give personalised recommendations to users
+## How It Works
 
-### 2. Recruiter Flow
-- Post job with description
-- LLM matches the top candidates against given job descriptions and sorts them according to their CV score,strengths and weaknesses.
-- Smart insights into user cv's and easy downloadable resumes
+### Candidate Workflow
+1. Upload resume (PDF/Word format)
+2. System extracts and analyzes resume content
+3. Compares against job descriptions in database
+4. Provides personalized improvement recommendations
+
+### Recruiter Workflow
+1. Post job description
+2. System matches uploaded resumes against job requirements
+3. Candidates are ranked by compatibility score
+4. View detailed analysis of each candidate's strengths and gaps
+
+---
+
+## Project Status
+
+This is a demonstration project showcasing AI-powered resume analysis capabilities. The platform provides basic matching and analysis features using modern AI tools and vector search technology.
