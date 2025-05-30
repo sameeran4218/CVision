@@ -1,0 +1,40 @@
+Job Title: Data Scientist
+Location: Bangalore, India (Hybrid)
+Company: AlphaTech Analytics Pvt. Ltd.
+Experience: 1–3 years
+Salary: ₹10–18 LPA
+
+About the Role
+We are looking for a passionate Data Scientist to join our growing team. You will work closely with cross-functional teams to uncover insights from large volumes of data and build data-driven solutions to support business decisions.
+
+Key Responsibilities
+Analyze large datasets to identify patterns, trends, and actionable insights.
+
+Develop predictive and classification models using machine learning algorithms.
+
+Collaborate with product and engineering teams to deploy data solutions into production.
+
+Communicate findings through effective visualizations and presentations.
+
+Perform A/B testing and statistical analysis for product experimentation.
+
+Required Skills
+Strong proficiency in Python for data analysis and machine learning.
+
+Hands-on experience with pandas, NumPy, scikit-learn, and Matplotlib/Seaborn.
+
+Solid understanding of statistics, probability, and machine learning concepts.
+
+Experience working with SQL and relational databases.
+
+Familiarity with version control (Git) and Jupyter notebooks.
+
+Preferred Qualifications
+Experience with big data tools (e.g., Spark, Hadoop) is a plus.
+
+Exposure to cloud platforms like AWS, GCP, or Azure.
+
+Knowledge of NLP or computer vision is a bonus.
+
+Education
+Bachelor's or Master’s degree in Computer Science, Data Science, Mathematics, Statistics, or a related field.
