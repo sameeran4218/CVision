@@ -1,4 +1,4 @@
-# 🎯 CVision - AI Resume Analyzer Platform
+# 🎯 CVision - Smart Resume Analyzer Platform
 
 <div align="center">
 
