@@ -9,13 +9,16 @@ from wtforms.validators import DataRequired,Email
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 import threading
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 from database import get_user_suggestions
 from llm import summarize_suggestions
 import uuid
 # Import functions
 from utilities import *
 
-load_dotenv()
+# Load environment variables
+dotenv.load_dotenv()
 
 app = Flask(__name__)
 
@@ -23,6 +26,23 @@ app = Flask(__name__)
 app.config['SECRET_KEY']=os.environ.get('FLASK_SECRET_KEY')
 # intilize the uploads folder to upload CV's
 app.config['UPLOADS_FOLDER'] = 'uploads'
+
+# Ensure uploads directory exists
+os.makedirs(app.config['UPLOADS_FOLDER'], exist_ok=True)
+
+# Connect to MongoDB with error handling
+try:
+    client = MongoClient(os.environ.get('MONGO_URI'), server_api=ServerApi('1'))
+    # Test the connection
+    client.admin.command('ping')
+    db = client["CVDataStorage"]
+    collection = db["user"]
+    print("MongoDB connection successful")
+except Exception as e:
+    print(f"MongoDB connection failed: {e}")
+    client = None
+    db = None
+    collection = None
 
 # create a form class
 class jobDescForm(FlaskForm):
@@ -45,37 +65,38 @@ def user():
     suggestion_summary = None
 
     if form.validate_on_submit():
-        userName = form.userName.data.strip()
-        userEmail = form.userEmail.data
-        userRole = form.userRole.data
-        cv = form.userCV.data
+        try:
+            userName = form.userName.data.strip()
+            userEmail = form.userEmail.data
+            userRole = form.userRole.data
+            cv = form.userCV.data
 
-        filename = secure_filename(cv.filename)
-        file_path = os.path.join(app.config['UPLOADS_FOLDER'], filename)
-        cv.save(file_path)
+            filename = secure_filename(cv.filename)
+            file_path = os.path.join(app.config['UPLOADS_FOLDER'], filename)
+            cv.save(file_path)
 
-        # Start threaded resume processing
-        thread1 = threading.Thread(target=async_Workflow, args=(file_path, userName))
-        thread1.start()
+            # Start threaded resume processing
+            thread1 = threading.Thread(target=async_Workflow, args=(file_path, userName))
+            thread1.start()
 
-        # Poll MongoDB for suggestions, max 10 seconds
-        timeout = 10
-        interval = 1
-        elapsed = 0
-        suggestions = []
+            # Poll MongoDB for suggestions, max 10 seconds
+            timeout = 10
+            interval = 1
+            elapsed = 0
+            suggestions = []
 
-        while elapsed < timeout:
-            suggestions = get_user_suggestions(userName)
-            if suggestions:
-                break
-            time.sleep(interval)
-            elapsed += interval
+            while elapsed < timeout:
+                suggestions = get_user_suggestions(userName)
+                if suggestions:
+                    break
+                time.sleep(interval)
+                elapsed += interval
 
-        suggestion_summary = summarize_suggestions(suggestions) if suggestions else "Suggestions are not ready yet. Please try again shortly."
+            suggestion_summary = summarize_suggestions(suggestions) if suggestions else "Suggestions are not ready yet. Please try again shortly."
 
-        # 🔍 Get suggestions for this user (name-based match)
-        suggestions = get_user_suggestions(userName)
-        suggestion_summary = summarize_suggestions(suggestions)
+        except Exception as e:
+            print(f"Error in user route: {e}")
+            suggestion_summary = "An error occurred while processing your request."
 
     return render_template(
         'user.html',
@@ -85,7 +106,10 @@ def user():
 
 # async function to handle the complete workflow
 def async_Workflow(file_path,userName):
-    workFlow(file_path,userName)
+    try:
+        workFlow(file_path,userName)
+    except Exception as e:
+        print(f"Error in async_Workflow: {e}")
 
 # Recruiter's Page
 @app.route('/recruiter', methods=['GET', 'POST'])
@@ -93,19 +117,22 @@ def recruiter():
     form = jobDescForm()
     companyName = jobRole = jobDesc = None
     if form.validate_on_submit():
-        companyName = form.companyName.data
-        jobRole = form.jobRole.data
-        jobDesc = form.jobDesc.data
-        # generate unique user id
-        unique_id=str(uuid.uuid4())
+        try:
+            companyName = form.companyName.data
+            jobRole = form.jobRole.data
+            jobDesc = form.jobDesc.data
+            # generate unique user id
+            unique_id=str(uuid.uuid4())
 
-        # Once receiving data, pass it on to store it in the vector database.
-        # Launch a background time to process asynchronously and avoid delays
-        thread=threading.Thread(target=async_storeVectorDB,args=(companyName,jobRole,jobDesc,unique_id))
-        thread.start()
+            # Once receiving data, pass it on to store it in the vector database.
+            # Launch a background time to process asynchronously and avoid delays
+            thread=threading.Thread(target=async_storeVectorDB,args=(companyName,jobRole,jobDesc,unique_id))
+            thread.start()
 
-
-        form.companyName.data = form.jobRole.data = form.jobDesc.data = ''
+            form.companyName.data = form.jobRole.data = form.jobDesc.data = ''
+        except Exception as e:
+            print(f"Error in recruiter route: {e}")
+            
     return render_template('recruiter.html',
                            companyName=companyName,
                            jobRole=jobRole,
@@ -114,30 +141,35 @@ def recruiter():
 
 # async function to pass data to vector store
 def async_storeVectorDB(company:str,role:str,desc:str,id:str)->None:
-    storeVectorDB(company=company,role=role,job_desc=desc,id=id)
-
-
-# Connect to MongoDB
-client = MongoClient(os.environ.get('MONGO_URI'), server_api=ServerApi('1'))
-db = client["CVDataStorage"]
-collection = db["user"]
+    try:
+        storeVectorDB(company=company,role=role,job_desc=desc,id=id)
+    except Exception as e:
+        print(f"Error in async_storeVectorDB: {e}")
 
 @app.route("/")
 def index():
     try:
-        # Optional: you can still pass companies for fallback/initial load
+        # Check if MongoDB is available
+        if collection is None:
+            return render_template("dashboard.html", companies=[], error="Database connection unavailable")
+        
         companies = collection.distinct("company")
         return render_template("dashboard.html", companies=companies)
     except Exception as e:
+        print(f"Error in index route: {e}")
         # Fallback if MongoDB is down
-        return render_template("dashboard.html", companies=[])
+        return render_template("dashboard.html", companies=[], error=str(e))
 
 @app.route("/get_companies")
 def get_companies():
     try:
+        if collection is None:
+            return jsonify({"error": "Database connection unavailable"}), 500
+            
         companies = collection.distinct("company")
         return jsonify(companies)
     except Exception as e:
+        print(f"Error in get_companies: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/get_roles")
@@ -147,12 +179,15 @@ def get_roles():
         return jsonify([])
 
     try:
+        if collection is None:
+            return jsonify({"error": "Database connection unavailable"}), 500
+            
         doc = collection.find_one({"company": company})
         roles = [role['role'] for role in doc.get("roles", [])] if doc else []
         return jsonify(roles)
     except Exception as e:
+        print(f"Error in get_roles: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/get_users")
 def get_users():
@@ -163,6 +198,9 @@ def get_users():
         return jsonify([])
 
     try:
+        if collection is None:
+            return jsonify({"error": "Database connection unavailable"}), 500
+            
         doc = collection.find_one({"company": company})
         if not doc:
             return jsonify([])
@@ -182,12 +220,31 @@ def get_users():
                     })
         return jsonify(matched_users)
     except Exception as e:
+        print(f"Error in get_users: {e}")
         return jsonify({"error": str(e)}), 500
+
 from datetime import datetime
+
 @app.route('/health')
 def health_check():
-    return {'status': 'healthy', 'timestamp': datetime.now().isoformat()}
-
+    try:
+        # Check MongoDB connection
+        mongo_status = "healthy" if collection is not None else "unhealthy"
+        if collection is not None:
+            # Try a simple query to test connection
+            collection.find_one({})
+        
+        return {
+            'status': 'healthy', 
+            'timestamp': datetime.now().isoformat(),
+            'mongodb': mongo_status
+        }
+    except Exception as e:
+        return {
+            'status': 'unhealthy', 
+            'timestamp': datetime.now().isoformat(),
+            'error': str(e)
+        }, 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
