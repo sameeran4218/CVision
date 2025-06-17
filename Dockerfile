@@ -3,17 +3,28 @@ FROM python:3.12-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies needed for your packages
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    build-essential \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and install wheel
+RUN pip install --upgrade pip setuptools wheel
 
 # Copy requirements first for better Docker layer caching
 COPY requirements.txt .
 
 # Install Python dependencies
+# Install numpy first as other packages depend on it
+RUN pip install --no-cache-dir "numpy>=1.26.0"
+
+# Install the rest of the requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
