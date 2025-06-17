@@ -13,4 +13,4 @@ langchain-core==0.3.61
 langchain-groq==0.3.2
 langchain-huggingface==0.2.0
 gunicorn==21.2.0
-numpy==1.24.3
+numpy>=1.26.0
