@@ -6,8 +6,13 @@ from langchain_groq import ChatGroq
 
 load_dotenv()
 
-# Step 1: Setup Groq LLM
-llm = ChatGroq(model_name="llama3-70b-8192", api_key=os.getenv('GROQ_API_KEY'))
+# Step 1: Setup Groq LLM with error handling
+try:
+    llm = ChatGroq(model_name="llama3-70b-8192", api_key=os.getenv('GROQ_API_KEY'))
+    print("Groq LLM initialized successfully")
+except Exception as e:
+    print(f"Error initializing Groq LLM: {e}")
+    llm = None
 
 # Step 2: Prompt Templates
 
@@ -45,11 +50,15 @@ Output:
 ---
 """
 
-
 # Step 3: Chain Construction
 
 def analyze_resume(job_desc: str, resume: str):
-    user_prompt = """### New Analysis Task
+    if llm is None:
+        print("LLM not available")
+        return '{"Fit Score": 0, "Strengths": [], "Weaknesses": ["LLM service unavailable"], "Suggestions": ["Please try again later"]}'
+    
+    try:
+        user_prompt = """### New Analysis Task
 
 Job Description:
 \"\"\"{job_description}\"\"\"
@@ -66,22 +75,25 @@ Output only in JSON format with the following keys:
 OUTPUT ONLY JSON. DO NOT OUTPUT ANYTHING ELSE !!!!
 """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(system_prompt),
-        HumanMessagePromptTemplate.from_template(few_shot_examples + user_prompt)
-    ])
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(system_prompt),
+            HumanMessagePromptTemplate.from_template(few_shot_examples + user_prompt)
+        ])
 
-    chain = prompt | llm | StrOutputParser()
+        chain = prompt | llm | StrOutputParser()
 
-    result = chain.invoke({
-        "job_description": job_desc,
-        "candidate_resume": resume
-    })
+        result = chain.invoke({
+            "job_description": job_desc,
+            "candidate_resume": resume
+        })
 
-    return result
+        return result
+    except Exception as e:
+        print(f"Error in analyze_resume: {e}")
+        return '{"Fit Score": 0, "Strengths": [], "Weaknesses": ["Analysis failed"], "Suggestions": ["Please try again later"]}'
 
+system_prompt_2 = """You are a helpful assistant who summarizes the suggestions provided to a user's CV in a concise yet descriptive way. DO NOT START WITH Here is a concise and descriptive summary of the suggestions:. START DIRECTLY LISTING OUT SUGGESTIONS."""
 
-system_prompt_2="""You are a helpful assitant who summarizes the suggestions provided to a user's cv in a concise yet descriptive way. DO NOT START WITH Here is a concise and descriptive summary of the suggestions:. START DIRECTLY LISTING OUT SUGGESTIONS. """
 few_shot_examples_2 = """### Example 1
 Job Description:
 Software Engineer with 3+ years experience in JavaScript, React, and backend development using Node.js. Familiarity with AWS and CI/CD pipelines preferred.
@@ -99,15 +111,24 @@ Output: "Add experience with database systems like SQL or NoSQL",
 def summarize_suggestions(all_suggestions):
     if not all_suggestions:
         return 'No suggestions found for this user'
-    user_prompt_2 = """ Please summarize the following suggestions \"\"\"{total_suggestions}\"\"\" """
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(system_prompt_2),
-        HumanMessagePromptTemplate.from_template(few_shot_examples_2+user_prompt_2)
-    ])
-    chain =prompt|llm|StrOutputParser()
+    
+    if llm is None:
+        print("LLM not available for summarization")
+        return 'LLM service unavailable for summarization'
+    
+    try:
+        user_prompt_2 = """ Please summarize the following suggestions \"\"\"{total_suggestions}\"\"\" """
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(system_prompt_2),
+            HumanMessagePromptTemplate.from_template(few_shot_examples_2 + user_prompt_2)
+        ])
+        chain = prompt | llm | StrOutputParser()
 
-    result=chain.invoke({
-        'total_suggestions':all_suggestions
-    })
+        result = chain.invoke({
+            'total_suggestions': all_suggestions
+        })
 
-    return result
+        return result
+    except Exception as e:
+        print(f"Error in summarize_suggestions: {e}")
+        return f'Error summarizing suggestions: {str(e)}'
