@@ -152,12 +152,7 @@ def getSimilarVectors(user_vec) -> list:
 
 # Full Workflow
 def workFlow(file_path: str, username: str) -> None:
-    '''1. extract text from user's cv, store it on cloudinary
-    2. get the embedding vector of user cv
-    3. extract similar job descriptions from pinecone vector database using similarity of vectors
-    4. for each id, get the metadata like company,role and job desc from pinecone
-    5. Analyze the job desc against user cv using the Langchain + LLM(Groq)
-    6. Finally store the company,role,username,usercv,cv score, suggestions,strengths and weakness to mongodb'''
+
     
     try:
         print(f"Starting workflow for user: {username}")
